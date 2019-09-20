@@ -26,14 +26,29 @@ temp_abs_gray_gradient=im2uint8(out_final_gray);
 figure
 imshow(temp_abs_gray_gradient);
 title('gradient image');
+temp_abs_gray_gradient(find(temp_abs_gray_gradient<40))=0;%Modify the threshold to get a different gradient map
+temp_vary_abs_gray_gradient=temp_abs_gray_gradient;
+temp_vary_abs_gray_gradient(find(temp_vary_abs_gray_gradient>0))=255;
+bw = im2bw(temp_vary_abs_gray_gradient);  % convert to binary img 
+figure
+imshow(bw );
+title('binary img');
+contour = bwperim(bw);                  
+figure
+imshow(contour);
+title('contour img');
+contour1 = edge(bw ,'canny');
+figure
+imshow(contour1);
+title('±ß½ç')
 %%
-figure
-imshow(Intensity_data);
-title('Intensity image');
-figure
-imshow(Hue_data);
-title('Hue Image');
-figure
-imshow(Saturation_data);
-title('Saturation image');
-[row_x,col_y]=size(Intensity_data);
+% figure
+% imshow(Intensity_data);
+% title('Intensity image');
+% figure
+% imshow(Hue_data);
+% title('Hue Image');
+% figure
+% imshow(Saturation_data);
+% title('Saturation image');
+% [row_x,col_y]=size(Intensity_data);
