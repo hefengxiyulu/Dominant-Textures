@@ -11,6 +11,9 @@ img_rgb=imread(str);
 %% Convert the RGB image to HSI image
 %img_gray=im2double(rgb2gray(img_rgb));
 img_gray=rgb2gray(img_rgb);
+imageCanny=edge(img_gray,'canny');
+imshow(imageCanny);
+title('canny image');
 img_hsi=rgb2hsi(img_rgb);
 data_I=img_hsi(:,:,3);
 data_S=img_hsi(:,:,2);
@@ -29,21 +32,31 @@ sc=princ(:,1:3);                       %前3主成分量；
 egenvalue;                              %相关系数矩阵的特征值，即各主成分所占比例；
 per=100*egenvalue/sum(egenvalue);       %各个主成分所占百分比；
 %[coef,score,latent,t2] = princomp(im2double(img_gray))
+%mul = imread('images/0.bmp');
+extract_pca(img_rgb);
 %%
 temp_img_gray=img_gray;
 temp_img_gray=im2double(temp_img_gray);
 [out_row_gray,out_colum_gray,out_final_gray,out_eight_final]=Gradient_calculation(temp_img_gray);%Calculate the gradient out_final_gray:四邻域计算;out_eight_final:八邻域计算
-temp_abs_gray_gradient=im2uint8(out_eight_final);
+temp_abs_gray_gradient=im2uint8(out_final_gray);
 figure
 imshow(temp_abs_gray_gradient);
-title('gradient image');
+title('4-gradient image');
+%%
+binary_gradient = temp_abs_gray_gradient;
+binary_gradient(find(binary_gradient<40))=0;%Modify the threshold to get a different gradient map
+binary_gradient(find(binary_gradient>0))=255;
+figure
+imshow(binary_gradient);
+title('binary image');
 %%
 %二次梯度
-[out_row_gray2,out_colum_gray2,out_final_gray2,out_eight_final2]=Gradient_calculation(out_eight_final);%Calculate the gradient out_final_gray:四邻域计算;out_eight_final:八邻域计算
-temp_abs_gray_gradient2=im2uint8(out_eight_final2);
+[out_row_gray2,out_colum_gray2,out_final_gray2,out_eight_final2]=Gradient_calculation(out_final_gray);%Calculate the gradient out_final_gray:四邻域计算;out_eight_final:八邻域计算
+temp_abs_gray_gradient2=im2uint8(out_final_gray2);
 
 tbl=tabulate(temp_abs_gray_gradient(:));
 set(0,'defaultfigurecolor','w')
+figure
 plot(tbl(:,1)',tbl(:,2)','b');%蓝色
 hold on
 tbl2=tabulate(temp_abs_gray_gradient2(:));
@@ -51,7 +64,6 @@ plot(tbl2(:,1)',tbl2(:,2)','r');%红色
 legend('一次梯度','二次梯度');
 xlabel('梯度值');
 ylabel('同梯度总数');
-
 %%
 temp_abs_gray_gradient(find(temp_abs_gray_gradient<40))=0;%Modify the threshold to get a different gradient map
 temp_vary_abs_gray_gradient=temp_abs_gray_gradient;
@@ -81,5 +93,5 @@ title('边界')
 % [row_x,col_y]=size(Intensity_data);
 
 %%
-latent=100*latent/sum(latent)%将latent总和统一为100，便于观察贡献率
-pareto(latent);%调用matla画图
+% latent=100*latent/sum(latent)%将latent总和统一为100，便于观察贡献率
+% pareto(latent);%调用matla画图
