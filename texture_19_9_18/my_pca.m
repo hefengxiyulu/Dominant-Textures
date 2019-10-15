@@ -22,7 +22,7 @@ meanValue =  mean(mul,1);
 % 数据去中心化
 mul = mul - repmat(meanValue,[r*c,1]);
 % 求协方差矩阵
-correlation = (mul'*mul)/pixels;
+correlation = (mul'*mul)/(pixels-1);
 %求特征向量与特征值
 [vector ,value] = eig(correlation);
 % 特征值和特征向量从大到小排序
