@@ -1,6 +1,6 @@
-%% This part of the code is mainly used for structure texture extract 
+%% This part of the code is mainly used for structure texture extract
 % 首先求梯度，连接各个小块的边缘，并统计小块的面积，合并相似的块
-% 
+%
 %%
 close all
 addpath(genpath(pwd));
@@ -21,7 +21,7 @@ data_H=img_hsi(:,:,1);
 Hue_data=data_H;
 Intensity_data=data_I;
 Saturation_data=data_S;
-%% PCA 
+%% PCA
 gray_pca=double(img_gray);
 stdr=std(gray_pca);                         %求各列变量的标准差；
 [n,m]=size(gray_pca);                       %矩阵的行与列
@@ -60,10 +60,53 @@ scatter(eigenvalue_x,eigenvalue_y,'*b'); %线性，颜色，标记
 xlabel('bigger patch特征值');  %x轴坐标描述
 ylabel('smaller patch 特征值');  %x轴坐标描述
 set(0,'defaultfigurecolor','w');
-%%  
-temp_gray_pca_fill=zeros(n+8,m+8);               %预先定义一个全0矩阵，边界扩大8        
-temp_gray_pca_fill(5:n+4,5:m+4)=gray_pca;        %将原矩阵赋值给中间部分
+%%
+k_x= find(eigenvalue_x<22500);
+k_y = find(eigenvalue_y<6500);
+result=ismember(k_y,k_x);
+%% 填充阴影
+shadow_gray_pca=ones(n_0*9,m_0*9);
+for m=1:size(result,2)
+    if result(m)==1
+        i=floor(k_y(m)/m_0);
+        j=mod(k_y(m),m_0);
+        if j==0
+            j=13;
+            i=i-1;
+        end
+        shadow_gray_pca((i*9)+1:(i+1)*9,(j-1)*9+1:j*9)=0;
+    end
+end
+figure
+imshow(img_rgb);
+out=shadow(shadow_gray_pca,1);
+%% 一次梯度
+temp_img_gray=img_gray;
+temp_img_gray=im2double(temp_img_gray);
+[out_row_gray,out_colum_gray,out_final_gray,out_eight_final]=Gradient_calculation(temp_img_gray);%Calculate the gradient out_final_gray:四邻域计算;out_eight_final:八邻域计算
+temp_abs_gray_gradient=im2uint8(out_final_gray);
+figure
+imshow(temp_abs_gray_gradient);
+rectangle('position',[14, 40, 7, 7],'edgecolor','r');
+rectangle('position',[12, 40, 7, 7],'edgecolor','g');
+title('4-gradient image');
+%% show
+binary_gradient = temp_abs_gray_gradient;
+binary_gradient(find(binary_gradient<40))=0;%Modify the threshold to get a different gradient map
+binary_gradient(find(binary_gradient>0))=255;
+figure
+imshow(binary_gradient);
+rectangle('position',[14, 40, 7, 7],'edgecolor','r');
+rectangle('position',[12, 40, 7, 7],'edgecolor','g');
+title('binary image');
+
+%%
+temp_abs_gray_gradient=double(temp_abs_gray_gradient);   %%使用梯度图进行实验
+[n,m]=size(temp_abs_gray_gradient);   %[n,m]=size(gray_pca);
+temp_gray_pca_fill=zeros(n+8,m+8);               %预先定义一个全0矩阵，边界扩大8
+temp_gray_pca_fill(5:n+4,5:m+4)=temp_abs_gray_gradient;        %将原矩阵赋值给中间部分   temp_gray_pca_fill(5:n+4,5:m+4)=gray_pca;
 storage_sta_value=zeros(n*m,16);                 %存储相关统计数据
+storage_sta_value_1=zeros(n*m,16);               %用于对各个点的数据进行分析
 sta_index=1;                                     %统计数据计数
 for i=5:n+4
     for j=5:m+4
@@ -72,7 +115,7 @@ for i=5:n+4
         pca_matrix_5=temp_gray_pca_fill((i-2):(i+2),(j-2):(j+2));   % 5*5
         pca_matrix_3=temp_gray_pca_fill((i-1):(i+1),(j-1):(j+1));   % 3*3
         % 求矩阵的均值                                 求矩阵的方差
-        mean_value_9=mean(mean(pca_matrix_9)); 
+        mean_value_9=mean(mean(pca_matrix_9));
         mean_value_7=mean(mean(pca_matrix_7));
         mean_value_5=mean(mean(pca_matrix_5));
         mean_value_3=mean(mean(pca_matrix_3));
@@ -96,32 +139,80 @@ for i=5:n+4
         stbl_std_v_7=std(stbl_7(:,2));
         stbl_std_v_5=std(stbl_5(:,2));
         stbl_std_v_3=std(stbl_9(:,2));
-        storage_sta_value(sta_index,:)=[mean_value_9,mean_value_7,mean_value_5,mean_value_3,  std_value_9,std_value_7,std_value_5,std_value_3, ...
-            stbl_mean_v_9,stbl_mean_v_7, stbl_mean_v_5,stbl_mean_v_3,   stbl_std_v_9,stbl_std_v_7,stbl_std_v_5,stbl_std_v_3];
+        storage_sta_value(sta_index,:)=[mean_value_9,mean_value_7,mean_value_5,mean_value_3,    std_value_9,std_value_7,std_value_5,std_value_3, ...
+                                        stbl_mean_v_9,stbl_mean_v_7,stbl_mean_v_5,stbl_mean_v_3, stbl_std_v_9,stbl_std_v_7,stbl_std_v_5,stbl_std_v_3];
+        storage_sta_value_1(sta_index,:)=[mean_value_9,std_value_9,stbl_mean_v_9,stbl_std_v_9,...
+            mean_value_7,std_value_7,stbl_mean_v_7,stbl_std_v_7,...
+            mean_value_5,std_value_5,stbl_mean_v_5,stbl_std_v_5,...
+            mean_value_3,std_value_3,stbl_mean_v_3,stbl_std_v_3];
         sta_index=sta_index+1;
     end
 end
-
 %%
-k_x= find(eigenvalue_x<22500);
-k_y = find(eigenvalue_y<6500);
+meanValue =  mean(storage_sta_value,1);                             % 求各通道的均值
+storage_sta_value = storage_sta_value - repmat(meanValue,n*m,1);    % 数据去中心化
+N = size(storage_sta_value,1);
+[E,V] = eig(storage_sta_value'*storage_sta_value/N);                %求特征向量与特征值
+v = diag(V);
+[v,ind] = sort(v,'descend');
+E = E(:,ind);
+Xp = storage_sta_value*E(:,1:5);
+figure
+scatter(Xp(:,1),Xp(:,2),'*b'); %线性，颜色，标记
+figure
+scatter3(Xp(:,1),Xp(:,2),Xp(:,3),'*b'); %线性，颜色，标记
+%%
+% meanValue_1 =  mean(storage_sta_value_1,1);                             % 求各通道的均值
+% storage_sta_value_1 = storage_sta_value_1 - repmat(meanValue_1,n*m,1);    % 数据去中心化
+
+eigenvalue_x=zeros(n*m,1);               %存储最大特征值，充当x坐标
+eigenvalue_y=zeros(n*m,1);               %存储最大特征值，充当y坐标
+temp_eigenvalue=zeros(4,4);
+sta_index_1=1;                                     %统计数据计数
+for j=1:n*m
+    temp_eigenvalue(1,:)=storage_sta_value_1(j,1:4);
+    temp_eigenvalue(2,:)=storage_sta_value_1(j,5:8);
+    temp_eigenvalue(3,:)=storage_sta_value_1(j,9:12);
+    temp_eigenvalue(4,:)=storage_sta_value_1(j,13:16);
+    
+    temp_meanValue =  mean(temp_eigenvalue,1);                             % 求各通道的均值
+    temp_eigenvalue = temp_eigenvalue - repmat(temp_meanValue,4,1);        % 数据去中心化
+    N = size(temp_eigenvalue,1);
+    [E,V] = eig(temp_eigenvalue'*temp_eigenvalue/N);                %求特征向量与特征值
+    v = diag(V);
+    [v,ind] = sort(v,'descend');
+    eigenvalue_x(sta_index_1,1)=v(1);
+    eigenvalue_y(sta_index_1,1)=v(2);
+    sta_index_1=sta_index_1+1;
+end
+figure
+scatter(eigenvalue_x,eigenvalue_y,'*b'); %线性，颜色，标记
+xlabel('最大特征值');  %x轴坐标描述
+ylabel('次最大特征值');  %x轴坐标描述
+set(0,'defaultfigurecolor','w');
+%%
+k_x= find(eigenvalue_x<500);
+k_y = find(eigenvalue_y<10);
 result=ismember(k_y,k_x);
 %% 填充阴影
-shadow_gray_pca=ones(n_0*9,m_0*9);
-for m=1:size(result,2)
-    if result(m)==1
-       i=floor(k_y(m)/m_0);
-       j=mod(k_y(m),m_0);
-       if j==0
-           j=13;
-           i=i-1;
-       end
-       shadow_gray_pca((i*9)+1:(i+1)*9,(j-1)*9+1:j*9)=0;
+shadow_gray_pca=ones(n,m);
+for kk=1:size(result,1)
+    if result(kk)==1
+        i=floor(k_y(kk)/m)+1;
+        j=mod(k_y(kk),m);
+        if j==0
+            j=m;
+            i=i-1;
+        end
+        shadow_gray_pca(i,j)=0;
     end
 end
 figure
 imshow(img_rgb);
 out=shadow(shadow_gray_pca,1);
+% temp_img_rgb=double(img_gray).*shadow_gray_pca;
+% imshow(uint8(temp_img_rgb));
+% out=shadow(shadow_gray_pca,1);
 %%
 temp_gray=img_gray;
 temp_img_gray=double(img_gray(37:51,10:24));
@@ -173,38 +264,20 @@ plot(x,eigenvalue,'-*b'); %线性，颜色，标记
 ylabel('特征值');  %x轴坐标描述
 set(0,'defaultfigurecolor','w');
 %%
-temp_gray(41:48,14:21)=0;
-figure
-imshow(temp_gray);
-temp_gray(39:49,12:22)=0;
-figure
-imshow(temp_gray);
-img_gray(37:51,10:24)=0;
-figure
-imshow(img_gray);
+% temp_gray(41:48,14:21)=0;
+% figure
+% imshow(temp_gray);
+% temp_gray(39:49,12:22)=0;
+% figure
+% imshow(temp_gray);
+% img_gray(37:51,10:24)=0;
+% figure
+% imshow(img_gray);
+% 
+% img_gray(27:60,11:78)=0;
+% figure
+% imshow(img_gray);
 
-img_gray(27:60,11:78)=0;
-figure
-imshow(img_gray);
-%% 一次梯度
-temp_img_gray=img_gray;
-temp_img_gray=im2double(temp_img_gray);
-[out_row_gray,out_colum_gray,out_final_gray,out_eight_final]=Gradient_calculation(temp_img_gray);%Calculate the gradient out_final_gray:四邻域计算;out_eight_final:八邻域计算
-temp_abs_gray_gradient=im2uint8(out_final_gray);
-figure
-imshow(temp_abs_gray_gradient);
-rectangle('position',[14, 40, 7, 7],'edgecolor','r');
-rectangle('position',[12, 40, 7, 7],'edgecolor','g');
-title('4-gradient image');
-%% show
-binary_gradient = temp_abs_gray_gradient;
-binary_gradient(find(binary_gradient<40))=0;%Modify the threshold to get a different gradient map
-binary_gradient(find(binary_gradient>0))=255;
-figure
-imshow(binary_gradient);
-rectangle('position',[14, 40, 7, 7],'edgecolor','r');
-rectangle('position',[12, 40, 7, 7],'edgecolor','g');
-title('binary image');
 %% 二次梯度
 [out_row_gray2,out_colum_gray2,out_final_gray2,out_eight_final2]=Gradient_calculation(out_final_gray);%Calculate the gradient out_final_gray:四邻域计算;out_eight_final:八邻域计算
 temp_abs_gray_gradient2=im2uint8(out_final_gray2);
@@ -223,11 +296,11 @@ ylabel('同梯度总数');
 temp_abs_gray_gradient(find(temp_abs_gray_gradient<40))=0;%Modify the threshold to get a different gradient map
 temp_vary_abs_gray_gradient=temp_abs_gray_gradient;
 temp_vary_abs_gray_gradient(find(temp_vary_abs_gray_gradient>0))=255;
-bw = im2bw(temp_vary_abs_gray_gradient);  % convert to binary img 
+bw = im2bw(temp_vary_abs_gray_gradient);  % convert to binary img
 figure
 imshow(bw );
 title('binary img');
-contour = bwperim(bw);                  
+contour = bwperim(bw);
 figure
 imshow(contour);
 title('contour img');
@@ -235,17 +308,3 @@ contour1 = edge(bw ,'canny');
 figure
 imshow(contour1);
 title('边界')
-%%
-% figure
-% imshow(Intensity_data);
-% title('Intensity image');
-% figure
-% imshow(Hue_data);
-% title('Hue Image');
-% figure
-% imshow(Saturation_data);
-% title('Saturation image');
-% [row_x,col_y]=size(Intensity_data);
-%%
-% latent=100*latent/sum(latent)%将latent总和统一为100，便于观察贡献率
-% pareto(latent);%调用matla画图
