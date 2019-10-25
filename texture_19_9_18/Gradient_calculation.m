@@ -3,7 +3,7 @@ function [out_row,out_colum,out_final,out_eight_final]=Gradient_calculation(inpu
 gradient_row=zeros(w,h);
 gradient_column=zeros(w,h);
 gradient_final=zeros(w,h);
-%% 横、纵轴坐标分别相减，取其绝对值大的
+%% 横、纵轴坐标分别相减，取其绝对值大的。 后一个坐标减去前一个坐标，没有考虑当前坐标与前一个坐标的差别
 for i=1:w-1
     for j=1:h-1
         gradient_row(i,j)=input(i,j+1)-input(i,j);
@@ -13,6 +13,33 @@ for i=1:w-1
         else
             gradient_final(i,j)=abs(gradient_column(i,j));
         end
+    end
+end
+%% 另一个计算梯度的版本，即上一个版本的改进，考虑当前点的前后，上下坐标点
+before_end=zeros(w,h);                               %当前值减去后一个值
+end_before=zeros(w,h);                               %后一个值减去当前值
+up_down=zeros(w,h);                                  %当前行减去后一行
+for col=1:h-1 
+    before_end(:,col)=abs(input(:,col)-input(:,col+1));
+    end_before(:,col)=input(:,col+1)-input(:,col);
+end
+for row=1:w-1
+    up_down(row,:)=abs(input(row,:)-input(row+1,:));
+end
+left=zeros(w,h);
+right=zeros(w,h);
+up=zeros(w,h);
+down=zeros(w,h);
+
+left(:,2:h)=before_end(:,1:h-1);
+right(:,1:h-1)=before_end(:,1:h-1);
+up(2:w,:)=up_down(1:w-1,:);
+down(1:w-1,:)=up_down(1:w-1,:);
+
+
+for i=1:w
+    for j=1:h
+       gradient_final(i,j)=max([left(i,j),right(i,j),up(i,j),down(i,j)]);
     end
 end
 %% 求其8邻域坐标差，取其绝对值最大的
