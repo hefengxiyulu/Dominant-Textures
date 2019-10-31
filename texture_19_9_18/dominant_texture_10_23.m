@@ -16,6 +16,10 @@ temp_img_gray=double(img_gray);
 %% show gradient image
 figure
 imshow(uint8(out_final_gray));
+imwrite(uint8(out_final_gray),'one_gradient.jpg');   %%save img
+%%
+figure
+[c,h]=imcontour(img_gray,3);
 %% Statistical gradient value distribution
 stbl=tabulate(out_final_gray(:));
 figure
@@ -49,10 +53,6 @@ for i=1:n_0
         matrix_C_region(i,j)=length(find(temp_matrix0>20&temp_matrix0<=30));
         matrix_D_region(i,j)=length(find(temp_matrix0>30&temp_matrix0<=40));
         matrix_E_region(i,j)=length(find(temp_matrix0>40&temp_matrix0<=50));
-%         figure
-%         [row,col]=size(stbl_1);
-%         x=1:1:row;                                               %x轴上的数据，第一个值代表数据开始，第二个值代表间隔，第三个值代表终止
-%         plot(x,stbl_1(:,2));                                     %线性，颜色，标记
     end
 end
 %%
@@ -74,7 +74,75 @@ legend('A-region:0~10','B-region:11~20','C-region:21~30','D-region:31~40','E-reg
 xlabel('9*9块的个数');  %x轴坐标描述
 ylabel('块内各个region内数据的含量');  %y轴坐标描述
 hold off
+%% 处理高梯度值部分，
+[n,m]=size(out_final_gray);
+n_0=ceil(n/9);
+m_0=ceil(m/9);
+
+matrix_A2_region=zeros(n_0,m_0);   %记录梯度值分布在A区域的统计值
+matrix_B2_region=zeros(n_0,m_0);   %记录梯度值分布在B区域的统计值
+matrix_C2_region=zeros(n_0,m_0);   %记录梯度值分布在C区域的统计值
+matrix_D2_region=zeros(n_0,m_0);   %记录梯度值分布在D区域的统计值
+
+
+temp_gray2=zeros(n_0*9,m_0*9);
+temp_gray2(1:n,1:m)=out_final_gray;
+temp_matrix2 = zeros(9);
 %%
+for i=1:n_0
+    for j=1:m_0
+        temp_matrix2=temp_gray2((1+(i-1)*9):i*9,(1+(j-1)*9):j*9);
+        stbl_1=tabulate(temp_matrix2(:));
+        matrix_A2_region(i,j)=length(find(temp_matrix2>50&temp_matrix2<=100));
+        matrix_B2_region(i,j)=length(find(temp_matrix2>100&temp_matrix2<=150));
+        matrix_C2_region(i,j)=length(find(temp_matrix2>150&temp_matrix2<=200));
+        matrix_D2_region(i,j)=length(find(temp_matrix2>200));
+    end
+end
+%%
+temp_A2_matrix=reshape(matrix_A2_region',1,n_0*m_0);
+temp_B2_matrix=reshape(matrix_B2_region',1,n_0*m_0);
+temp_C2_matrix=reshape(matrix_C2_region',1,n_0*m_0);
+temp_D2_matrix=reshape(matrix_D2_region',1,n_0*m_0);
+%%
+figure
+hold on
+plot(temp_A2_matrix,'r-*');
+plot(temp_B2_matrix,'g-*');
+plot(temp_C2_matrix,'b-*');
+plot(temp_D2_matrix,'y-*');
+
+legend('A-region:51~100','B-region:101~150','C-region:151~200','D-region:201~...','Location','north');
+xlabel('9*9块的个数');  %x轴坐标描述
+ylabel('块内各个region内数据的含量');  %y轴坐标描述
+hold off
+%% 寻找每个块内主要成分所处的区域
+[k,l]=size(temp_A2_matrix);
+index_region=zeros(k,l);
+for ii=1:l
+    [m,p]=max([temp_A2_matrix(k,ii),temp_B2_matrix(k,ii),temp_C2_matrix(k,ii),temp_D2_matrix(k,ii)]);
+    index_region(k,ii)=p;
+end
+%% 填充阴影
+shadow_img=zeros(n_0*9,m_0*9);
+for kk=1:l
+    r=rem(kk,m_0);
+    f=floor(kk/m_0);
+    if r==0
+        r=m_0;
+        f=f-1;
+    end
+    shadow_img(1+f*9:(f+1)*9,1+(r-1)*9:r*9)=index_region(1,kk);
+end
+figure
+imshow(img_rgb);
+out=shadow_multi(shadow_img);
+%%
+figure
+imshow(img_rgb);
+[out_row_gray1,out_colum_gray1,out_final_gray1,out_eight_final1]=Gradient_calculation(out_final_gray);%Calculate the gradient out_final_gray:四邻域计算;out_eight_final:八邻域计算
+out=shadow_point(out_final_gray1);
+
 %---------------------------------------分割线----------------------------------------------------
 %% 7*7
 [n,m]=size(out_final_gray);
