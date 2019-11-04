@@ -141,7 +141,7 @@ out=shadow_multi(shadow_img);
 figure
 imshow(img_rgb);
 [out_row_gray1,out_colum_gray1,out_final_gray1,out_eight_final1]=Gradient_calculation(out_final_gray);%Calculate the gradient out_final_gray:四邻域计算;out_eight_final:八邻域计算
-out=shadow_point(out_final_gray1);
+out=shadow_point(out_final_gray1); %%在相应点的位置显示阴影
 
 %---------------------------------------分割线----------------------------------------------------
 %% 7*7
