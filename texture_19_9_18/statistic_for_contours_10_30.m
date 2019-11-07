@@ -140,6 +140,7 @@ end
 title('Radius=3');
 xlabel('left data');  %x轴坐标描述
 ylabel('right data');
+grid minor
 hold off
 %%
 %% 填充阴影 R=1
@@ -455,6 +456,90 @@ for i=1:length(output)
         scatter(left_right(1,i),left_right(2,i),'*y'); %线性，颜色，标记
     end
 end
+hold off
+%% 指定点映射
+specify_points_0=[15,16;15,17;15,18;16,17;16,18;16,19;17,18;17,19;17,20;18,20;18,19;19,21;19,20;19,19;] ;  %%region 1
+specify_points_1=[20,21;21,22;21,21;22,24;22,23;22,22;22,21;23,22;];
+specify_points_2=[17,16;17,15;18,15;19,16;19,15;20,18;20,17;20,16;20,15;21,19;21,18;21,17;22,19;21,15;];
+specify_points_3=[27,23;28,23;28,22;29,22;29,21;30,23;31,21;];
+shadow_gray=zeros(row*patch_size,col*patch_size);
+for m=1:size(left_right,2)
+    [flag_0,idx_0] = ismember(left_right(:,m)',specify_points_0,'rows');
+    [flag_1,idx_1] = ismember(left_right(:,m)',specify_points_1,'rows');
+    [flag_2,idx_2] = ismember(left_right(:,m)',specify_points_2,'rows');
+    [flag_3,idx_3] = ismember(left_right(:,m)',specify_points_3,'rows');
+    if flag_0==1
+        i=floor(m/(col-1));
+        j=mod(m,(col-1));
+        if j==0
+            j=col-1;
+            i=i-1;
+        end
+        shadow_gray((i*patch_size)+1:(i+1)*patch_size,(j-1)*patch_size+1:(j+1)*patch_size)=1;
+    elseif flag_1==1
+        i=floor(m/(col-1));
+        j=mod(m,(col-1));
+        if j==0
+            j=col-1;
+            i=i-1;
+        end
+        shadow_gray((i*patch_size)+1:(i+1)*patch_size,(j-1)*patch_size+1:(j+1)*patch_size)=2;
+    elseif flag_2==1
+        i=floor(m/(col-1));
+        j=mod(m,(col-1));
+        if j==0
+            j=col-1;
+            i=i-1;
+        end
+        shadow_gray((i*patch_size)+1:(i+1)*patch_size,(j-1)*patch_size+1:(j+1)*patch_size)=3;
+    elseif flag_3==1
+        i=floor(m/(col-1));
+        j=mod(m,(col-1));
+        if j==0
+            j=col-1;
+            i=i-1;
+        end
+        shadow_gray((i*patch_size)+1:(i+1)*patch_size,(j-1)*patch_size+1:(j+1)*patch_size)=4;
+    else
+        i=floor(m/(col-1));
+        j=mod(m,(col-1));
+        if j==0
+            j=col-1;
+            i=i-1;
+        end
+        shadow_gray((i*patch_size)+1:(i+1)*patch_size,(j-1)*patch_size+1:(j+1)*patch_size)=5;
+    end  
+end
+figure
+imshow(img_rgb);
+out=shadow_SB(shadow_gray);
+title('left-right');
+%% 
+figure
+for m=1:size(left_right,2)
+    [flag_0,idx_0] = ismember(left_right(:,m)',specify_points_0,'rows');
+    [flag_1,idx_1] = ismember(left_right(:,m)',specify_points_1,'rows');
+    [flag_2,idx_2] = ismember(left_right(:,m)',specify_points_2,'rows');
+    [flag_3,idx_3] = ismember(left_right(:,m)',specify_points_3,'rows');
+    if flag_0==1
+        hold on
+        scatter(left_right(1,m),left_right(2,m),'*r'); %线性，颜色，标记
+    elseif flag_1==1
+       hold on
+        scatter(left_right(1,m),left_right(2,m),'*g'); %线性，颜色，标记
+    elseif flag_2==1
+         hold on
+        scatter(left_right(1,m),left_right(2,m),'*b'); %线性，颜色，标记
+    elseif flag_3==1
+        hold on
+        scatter(left_right(1,m),left_right(2,m),'*c'); %线性，颜色，标记
+    else
+        hold on
+        scatter(left_right(1,m),left_right(2,m),'*m'); %线性，颜色，标记
+    end  
+end
+xlabel('left data');  %x轴坐标描述
+ylabel('right data');
 hold off
 %--------------------------------------------------------------------------------------------
 %% up to down  聚类
