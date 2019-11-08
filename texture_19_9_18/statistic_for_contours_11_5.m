@@ -21,7 +21,7 @@ temp_img_gray=double(img_gray);       %% convert to double type
 temp_img_gray(temp_img_gray>100)=1;   %% 将非零数据转换为1，便于使用函数统计块内轮廓点的个数，即统计1的总个数
 %%
 fun = @(block_struct) sum(sum(block_struct.data));                    %Create block processing function.
-patch_size=10;
+patch_size=13;
 tatistic_data=blockproc(temp_img_gray,[patch_size patch_size],fun);   % Select the appropriate batch size
 %% up to down
 [row,col]=size(tatistic_data);
@@ -60,43 +60,18 @@ for i=1:length(output)
 end
 xlabel('up data');  %x轴坐标描述
 ylabel('down data');
+title('K-means');
 hold off
 %%  散点映射
 shadow_gray_up_down=zeros(row*patch_size,col*patch_size);
 for i=1:length(output)
-    if output(i)==1
-        ii=floor(i/(col));
-        jj=mod(i,(col));
-        if jj==0
-            jj=col;
-            ii=ii-1;
-        end
-        shadow_gray_up_down((ii*patch_size)+1:(ii+2)*patch_size,(jj-1)*patch_size+1:jj*patch_size)=1;
-    elseif output(i)==2
-        ii=floor(i/(col));
-        jj=mod(i,(col));
-        if jj==0
-            jj=col;
-            ii=ii-1;
-        end
-        shadow_gray_up_down((ii*patch_size)+1:(ii+2)*patch_size,(jj-1)*patch_size+1:jj*patch_size)=2;
-    elseif output(i)==3
-        ii=floor(i/(col));
-        jj=mod(i,(col));
-        if jj==0
-            jj=col;
-            ii=ii-1;
-        end
-        shadow_gray_up_down((ii*patch_size)+1:(ii+2)*patch_size,(jj-1)*patch_size+1:jj*patch_size)=3;
-    else output(i)==4
-        ii=floor(i/(col));
-        jj=mod(i,(col));
-        if jj==0
-            jj=col;
-            ii=ii-1;
-        end
-        shadow_gray_up_down((ii*patch_size)+1:(ii+2)*patch_size,(jj-1)*patch_size+1:jj*patch_size)=4;
+    ii=floor(i/(col));
+    jj=mod(i,(col));
+    if jj==0
+        jj=col;
+        ii=ii-1;
     end
+    shadow_gray_up_down((ii*patch_size)+1:(ii+2)*patch_size,(jj-1)*patch_size+1:jj*patch_size)=output(i);
 end
 %%
 figure
@@ -114,7 +89,8 @@ figure
 bar3(sta_frequency)
 title('Frequency chart')
 %% DBSCAN
-out_Idx=my_DBScan(up_down(:,:)',3,2);  %%KNN k distance graph, to determine the epsilon
+out_Idx=my_DBScan(up_down(:,:)',2,2);  %%KNN k distance graph, to determine the epsilon
 %%
 [row,col]=size(tatistic_data);
 out=texture_map(img_rgb,row,col,patch_size,out_Idx,1);
+%%

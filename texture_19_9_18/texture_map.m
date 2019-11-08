@@ -10,14 +10,22 @@ shadow_matrix=zeros(row*patch_size,col*patch_size);
 k=max(input_Idx);  %%因为含有0，即噪点
 if mark==0       %% left-right
     for i=1:length(input_Idx)
-        ii=floor(i/(col));
-        jj=mod(i,(col));
+        ii=floor(i/(col-1));
+        jj=mod(i,(col-1));
         if jj==0
-            jj=col;
+            jj=col-1;
             ii=ii-1;
         end
         shadow_matrix((ii*patch_size)+1:(ii+1)*patch_size,(jj-1)*patch_size+1:(jj+1)*patch_size)=input_Idx(i);
     end
+    figure
+    imshow(img_rgb);
+    out=shadow_SB_pro(shadow_matrix,k);
+    title(['DBSCAN Clustering (patch size = ' num2str(patch_size) ', Mode = left-right)']);
+    
+    path_name='./Save_Data/';
+    file_name=strcat('shadow_matrix_LR_', num2str(patch_size));
+    save([path_name,file_name],'shadow_matrix');
 elseif mark==1   %%up-down
     for i=1:length(input_Idx)
         ii=floor(i/(col));
@@ -28,9 +36,13 @@ elseif mark==1   %%up-down
         end
         shadow_matrix((ii*patch_size)+1:(ii+2)*patch_size,(jj-1)*patch_size+1:jj*patch_size)=input_Idx(i);
     end
+    figure
+    imshow(img_rgb);
+    out=shadow_SB_pro(shadow_matrix,k);
+    title(['DBSCAN Clustering (patch size = ' num2str(patch_size) ', Mode =  up-down)']);
+    
+    path_name='./Save_Data/';
+    file_name=strcat('shadow_matrix_UD_', num2str(patch_size));
+    save([path_name,file_name],'shadow_matrix');
 end
-figure
-imshow(img_rgb);
-out=shadow_SB_pro(shadow_matrix,k);
-title('up-down');
 end

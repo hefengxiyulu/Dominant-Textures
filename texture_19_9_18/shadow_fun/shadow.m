@@ -1,8 +1,8 @@
 function out=shadow(input,value)
 hold on;
 %% 
-a=input<value;% nature image
-% a=input>value;% structure image
+% a=input<value;% nature image
+a=input>value;% structure image
 %%
 [m n]=find(a);
 for ii=1:length(m)
