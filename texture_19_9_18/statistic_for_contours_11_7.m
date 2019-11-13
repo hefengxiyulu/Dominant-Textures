@@ -51,7 +51,7 @@ figure
 bar3(sta_frequency)
 title('Frequency chart')
 %% DBSCAN
-out_Idx=my_DBScan(left_right(:,:)',2,2);  %%KNN k distance graph, to determine the epsilon
+out_Idx=my_DBScan(left_right(:,:)',1,2);  %%KNN k distance graph, to determine the epsilon
 %%
 [row,col]=size(tatistic_data);
 out=texture_map(img_rgb,row,col,patch_size,out_Idx,0);
