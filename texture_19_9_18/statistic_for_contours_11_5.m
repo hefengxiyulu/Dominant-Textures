@@ -21,7 +21,7 @@ temp_img_gray=double(img_gray);       %% convert to double type
 temp_img_gray(temp_img_gray>100)=1;   %% 将非零数据转换为1，便于使用函数统计块内轮廓点的个数，即统计1的总个数
 %%
 fun = @(block_struct) sum(sum(block_struct.data));                    %Create block processing function.
-patch_size=13;
+patch_size=12;
 tatistic_data=blockproc(temp_img_gray,[patch_size patch_size],fun);   % Select the appropriate batch size
 %% up to down
 [row,col]=size(tatistic_data);

@@ -2,6 +2,7 @@
 % 创建于2019年11月7日
 % statistic_for_contours_10_30.m的替换版本，由于原版本中含有过多试验证明失败的代码，因此该版本为原代码的改进版，主要应用DBScan聚类算法进行散点的聚类。
 %使用opencv寻找到轮廓，并保存为图片。然后在matlab中导入。最后进行分块处理，统计每个块中轮廓像素的个数。
+% left_right code
 %%
 close all
 addpath(genpath(pwd));
@@ -21,7 +22,7 @@ temp_img_gray=double(img_gray);       %% convert to double type
 temp_img_gray(temp_img_gray>100)=1;   %% 将非零数据转换为1，便于使用函数统计块内轮廓点的个数，即统计1的总个数
 %%
 fun = @(block_struct) sum(sum(block_struct.data));                    %Create block processing function.
-patch_size=13;
+patch_size=12;
 tatistic_data=blockproc(temp_img_gray,[patch_size patch_size],fun);   % Select the appropriate batch size
 %% left to right
 [row,col]=size(tatistic_data);
