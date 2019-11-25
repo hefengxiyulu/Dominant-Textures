@@ -89,7 +89,7 @@ set(gca,'XTick',0:1:17);
 shadow_patch=zeros(row_1+patch_size_x-1,col_1+patch_size_y-1);
 for i=1:row_1
     for j=1:col_1
-        if tatistic_data_step_1(i,j)==sort_stbl_data(2,1);
+        if tatistic_data_step_1(i,j)>=6;
             shadow_patch(i:i+patch_size_x-1,j:j+patch_size_y-1)=1;
         end
     end
@@ -100,3 +100,5 @@ imshow(temp_img_gray)
 out=shadow(shadow_patch,0);
 title_name=strcat(num2str(patch_size_x),'x', num2str(patch_size_y),'¿éµÄÓ³ÉäÍ¼');
 title(title_name);
+%%
+imwrite(shadow_patch,'final_matrix_2x5.jpg');
